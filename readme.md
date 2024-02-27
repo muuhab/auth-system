@@ -10,7 +10,6 @@ A brief description of your Node.js Express Sequelize project.
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [License](#license)
 
 ## Introduction
 
