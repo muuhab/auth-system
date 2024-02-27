@@ -1,41 +1,45 @@
 module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define("User", {
-      firstName: {
-        type: DataTypes.STRING,
-        validate:{
-          notEmpty:false
-        }
+  const User = sequelize.define("User", {
+    firstName: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: false,
       },
-      lastName: {
-        type: DataTypes.STRING,
-        validate:{
-          notEmpty:false
-        }
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: false,
       },
-      howFoundUsId: {
-        type: DataTypes.STRING,
+    },
+    howFoundUsId: {
+      type: DataTypes.STRING,
+    },
+    password: {
+      type: DataTypes.STRING,
+    },
+    mobile: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+    age: {
+      type: DataTypes.INTEGER,
+      validate: {
+        notEmpty: false,
       },
-      password: {
-        type: DataTypes.STRING,
-      },
-      mobile: {
-        type: DataTypes.STRING,
-        unique: true
-      },
-      age: {
-        type: DataTypes.INTEGER,
-        validate:{
-          notEmpty:false
-        }
-      },
-      verified: {
-        type: DataTypes.BOOLEAN
-      }
-    });
+    },
+    secret: {
+      type: DataTypes.STRING,
+    },
+    verified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  });
 
-    User.associate = (models)=>{
-      User.hasMany(models.OTP)
-    }
-
-    return User;
+  User.associate = (models) => {
+    User.hasMany(models.OTP);
   };
+
+  return User;
+};
