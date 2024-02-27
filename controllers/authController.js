@@ -9,9 +9,14 @@ const bcrypt = require("bcrypt");
 const db = require("../models");
 
 module.exports = class AuthController {
-  register = async (req, res, next) => {
+  async register(req, res, next) {
     try {
       const data = registerSchema.parse(req.body);
+      const howfoundus = await db.HowFoundUs.findOne({
+        where: { id: data.howfoundusId },
+      });
+      if (!howfoundus)
+        return res.status(400).json({ message: "Invalid How Found Us" });
       const secret = speakeasy.generateSecret().base32;
       data.secret = secret;
       const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -34,8 +39,8 @@ module.exports = class AuthController {
         return res.status(400).json({ message: error.errors[0].message });
       res.status(400).json(error);
     }
-  };
-  login = async (req, res, next) => {
+  }
+  async login(req, res, next) {
     try {
       const data = loginSchema.parse(req.body);
 
@@ -71,9 +76,9 @@ module.exports = class AuthController {
     } catch (error) {
       res.status(400).json(error);
     }
-  };
+  }
 
-  verify = async (req, res, next) => {
+  async verify(req, res, next) {
     try {
       const data = verifySchema.parse(req.body);
       const user = await db.User.findOne({ where: { id: data.userId } });
@@ -95,8 +100,8 @@ module.exports = class AuthController {
     } catch (error) {
       res.status(400).json(error);
     }
-  };
-  generate = async (req, res, next) => {
+  }
+  async generate(req, res, next) {
     try {
       const userId = zod
         .object({ userId: zod.string() })
@@ -120,7 +125,7 @@ module.exports = class AuthController {
     } catch (error) {
       res.status(400).json(error);
     }
-  };
+  }
   me = async (req, res, next) => {
     try {
       res.json(req.user);
