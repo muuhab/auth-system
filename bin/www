@@ -1,99 +1,83 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
+const MyApp = require("../app");
+const debug = require("debug")("auth-system:server");
+const http = require("http");
+const db = require("../models");
 
-var app = require("../app");
-var debug = require("debug")("auth-system:server");
-var http = require("http");
-
-var db = require("../models");
-
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || "3000");
-app.set("port", port);
-
-/**
- * Create HTTP server.
- */
-
-// db.sequelize.sync({force:true}).then((req)=>{
-db.sequelize
-  .sync()
-  .then((req) => {
-    console.log("Connected to database successfully");
-  })
-  .catch((e) => {
-    console.log(e);
-    console.log("Failed to connect to database");
-  });
-
-var server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
+class MyServer {
+  constructor() {
+    this.app = new MyApp().app;
+    this.setupDatabase();
+    this.createServer();
+    this.listen();
   }
 
-  if (port >= 0) {
-    // port number
-    return port;
+  setupDatabase() {
+    db.sequelize
+      .sync()
+      .then(() => {
+        console.log("Connected to database successfully");
+      })
+      .catch((e) => {
+        console.log(e);
+        console.log("Failed to connect to database");
+      });
   }
 
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== "listen") {
-    throw error;
+  createServer() {
+    const port = this.normalizePort(process.env.PORT || "3000");
+    this.app.set("port", port);
+    this.server = http.createServer(this.app);
   }
 
-  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  normalizePort(val) {
+    const port = parseInt(val, 10);
+    if (isNaN(port)) {
+      return val;
+    }
+    if (port >= 0) {
+      return port;
+    }
+    return false;
+  }
 
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case "EACCES":
-      console.error(bind + " requires elevated privileges");
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(bind + " is already in use");
-      process.exit(1);
-      break;
-    default:
+  listen() {
+    this.server.listen(this.app.get("port"));
+    this.server.on("error", this.onError.bind(this));
+    this.server.on("listening", this.onListening.bind(this));
+  }
+
+  onError(error) {
+    if (error.syscall !== "listen") {
       throw error;
+    }
+
+    const bind =
+      typeof this.app.get("port") === "string"
+        ? "Pipe " + this.app.get("port")
+        : "Port " + this.app.get("port");
+
+    switch (error.code) {
+      case "EACCES":
+        console.error(bind + " requires elevated privileges");
+        process.exit(1);
+        break;
+      case "EADDRINUSE":
+        console.error(bind + " is already in use");
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
+  }
+
+  onListening() {
+    const addr = this.server.address();
+    const bind =
+      typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+    debug("Listening on " + bind);
   }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  debug("Listening on " + bind);
-}
+new MyServer();

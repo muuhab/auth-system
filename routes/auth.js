@@ -2,11 +2,22 @@ var express = require("express");
 var router = express.Router();
 const AuthController = require("../controllers/authController");
 
-const authController = new AuthController();
+module.exports = class AuthRoutes {
+  #privateRouter;
+  constructor() {
+    this.#privateRouter = router;
+    this.authController = new AuthController();
+    this.#routes();
+  }
 
-router.post("/register", authController.register);
-router.post("/login", authController.login);
-router.post("/verify/", authController.verify);
-router.post("/generate", authController.generate);
+  #routes() {
+    this.#privateRouter.post("/register", this.authController.register);
+    this.#privateRouter.post("/login", this.authController.login);
+    this.#privateRouter.post("/verify/", this.authController.verify);
+    this.#privateRouter.post("/generate", this.authController.generate);
+  }
 
-module.exports = router;
+  getRouter() {
+    return this.#privateRouter;
+  }
+};

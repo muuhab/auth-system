@@ -2,12 +2,12 @@ const speakeasy = require("speakeasy");
 const registerSchema = require("../validations/register.schema");
 const loginSchema = require("../validations/login.schema");
 const verifySchema = require("../validations/verify.schema");
-const { generateToken } = require("../utils/middleware");
+const AuthHelper = require("../utils/middleware");
+
 const zod = require("zod");
 const bcrypt = require("bcrypt");
 
 const db = require("../models");
-
 module.exports = class AuthController {
   async register(req, res, next) {
     try {
@@ -66,7 +66,7 @@ module.exports = class AuthController {
           otp,
         });
       }
-      const token = generateToken({
+      const token = AuthHelper.generateToken({
         id: user.dataValues.id,
         name: user.dataValues.firstName + " " + user.dataValues.lastName,
       });
