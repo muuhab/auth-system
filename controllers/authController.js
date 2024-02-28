@@ -35,9 +35,7 @@ module.exports = class AuthController {
       });
       res.json({ success: true, id: user.id, message: "OTP Sent", otp });
     } catch (error) {
-      if (error.name === "SequelizeUniqueConstraintError")
-        return res.status(400).json({ message: error.errors[0].message });
-      res.status(400).json(error);
+      next(error);
     }
   }
   async login(req, res, next) {
@@ -74,7 +72,7 @@ module.exports = class AuthController {
       });
       res.json({ success: true, token, name: user.name, token });
     } catch (error) {
-      res.status(400).json(error);
+      next(error);
     }
   }
 
@@ -98,7 +96,7 @@ module.exports = class AuthController {
       );
       res.json({ success: true });
     } catch (error) {
-      res.status(400).json(error);
+      next(error);
     }
   }
   async generate(req, res, next) {
@@ -123,21 +121,7 @@ module.exports = class AuthController {
 
       res.json({ success: true, otp });
     } catch (error) {
-      res.status(400).json(error);
+      next(error);
     }
   }
-  me = async (req, res, next) => {
-    try {
-      res.json(req.user);
-    } catch (error) {
-      res.status(400).json(error);
-    }
-  };
-  logout = async (req, res, next) => {
-    try {
-      res.json({ success: true });
-    } catch (error) {
-      res.status(400).json(error);
-    }
-  };
 };

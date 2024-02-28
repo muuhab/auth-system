@@ -7,22 +7,24 @@ module.exports = class {
       const howfoundus = await db.HowFoundUs.findAll();
       res.json({ success: true, data: howfoundus });
     } catch (error) {
-      if (error.name === "SequelizeUniqueConstraintError")
-        return res.status(400).json({ message: error.errors[0].message });
-      res.status(400).json(error);
+      next(error);
     }
   }
 
   async findById(req, res, next) {
     try {
-      const id = req.params.id;
+      const id = zod
+        .string()
+        .refine((value) => !isNaN(Number(value)), {
+          message: "ID must be a valid number",
+        })
+        .parse(req.params.id);
       const howfoundus = await db.HowFoundUs.findOne({ where: { id } });
-      if (!howfoundus) return res.status(404).json({ message: "Not Found" });
+      if (!howfoundus)
+        return res.status(404).json({ message: "No data Found" });
       res.json({ success: true, data: howfoundus.dataValues });
     } catch (error) {
-      if (error.name === "SequelizeUniqueConstraintError")
-        return res.status(400).json({ message: error.errors[0].message });
-      res.status(400).json(error);
+      next(error);
     }
   }
 
@@ -40,9 +42,7 @@ module.exports = class {
         howfoundus,
       });
     } catch (error) {
-      if (error.name === "SequelizeUniqueConstraintError")
-        return res.status(400).json({ message: error.errors[0].message });
-      res.status(400).json(error);
+      next(error);
     }
   }
 };

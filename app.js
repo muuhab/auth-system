@@ -3,14 +3,13 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const { ZodError } = require("zod");
 
 const indexRouter = require("./routes/index");
 const howfoundusRouter = require("./routes/howfoundus");
 const authRouter = require("./routes/auth");
 
 const app = express();
-
-// view engine setup
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -22,20 +21,40 @@ app.use("/", indexRouter);
 app.use("/api/howfoundus", howfoundusRouter);
 app.use("/api", authRouter);
 
-// catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
+  if (err instanceof ZodError) {
+    const errors = err.errors.map((error) => {
+      if (error.path.length === 0)
+        return {
+          message: error.message,
+        };
+      else
+        return {
+          field: error.path.join("."),
+          message: error.message,
+        };
+    });
+    return res.status(400).json({ success: false, message: errors });
+  }
+
+  if (err.name === "SequelizeUniqueConstraintError") {
+    const errors = err.errors.map((error) => {
+      return {
+        field: error.path,
+        message: error.message,
+      };
+    });
+    return res.status(400).json({ success: false, message: errors });
+  }
   res.status(err.status || 500);
-  res.render("error");
+  res.json({ message: err.message });
 });
 
 module.exports = app;
